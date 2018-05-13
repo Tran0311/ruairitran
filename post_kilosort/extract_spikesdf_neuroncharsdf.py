@@ -3,17 +3,21 @@ import numpy as np
 import pandas as pd
 import NeuroTools.signals as nt
 
-recordings_to_extract = ['CIT_WAY_03_2018-05-07_15-25-21_PRE',
-                         'CIT_WAY_03_2018-05-07_16-26-19_cit',
-                         'CIT_WAY_03_2018-05-07_17-27-42_way']
+recordings_to_extract = ['401a_2018-04-18_16-34-20_NO_CNO',
+                         '401a_2018-04-18_17-40-36_CNO']
 
-kilosort_folder = r'C:\Users\Rory\raw_data\CIT_WAY\dat_files'
+kilosort_folder = r'C:\Users\Rory\raw_data\SERT_DREADD\dat_files'
 
-spikes_df_csv_out_folder = r'C:\Users\Rory\raw_data\CIT_WAY\spikes_df'
-nrn_char_out_fol = r'C:\Users\Rory\raw_data\CIT_WAY\neuron_characteristics'
+spikes_df_csv_out_folder = r'C:\Users\Rory\raw_data\SERT_DREADD\spikes_df'
+nrn_char_out_fol = r'C:\Users\Rory\raw_data\SERT_DREADD\neuron_characteristics'
 
 
 sampling_rate = 30000
+
+
+def concatenate_columns(row):
+    return ' '.join([row['firing_cat'], row['regularity_cat']])
+
 
 for recording_to_extract in recordings_to_extract:
     print(recording_to_extract)
@@ -87,6 +91,9 @@ for recording_to_extract in recordings_to_extract:
     # create and savesave neuron_characteristics_df
     df = pd.DataFrame(data=all_neurons_container)
     df = df.transpose()
+    df['firing_cat'] = (df['rate'] <= 4).map({True: 'slow', False: 'fast'})
+    df['regularity_cat'] = (df['cv_isi'] <= 0.6).map({True: 'regular', False: 'irregular'})
+    df['neuron_category'] = df.apply(concatenate_columns, axis=1)
     df = df.set_index('cluster')
     print('Saving Neuron Characteristics Dataframe')
     df.to_csv('\\'.join([out_f2, recording_to_extract]) + '.csv')
